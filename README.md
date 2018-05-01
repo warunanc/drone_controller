@@ -7,3 +7,4 @@ This is a simple application developed using Qt C++ and QML libraries in which u
 
 # App in action
 ![screenshot](https://github.com/warunanc/drone_controller/blob/master/final_image.png)
+Video: https://github.com/warunanc/drone_controller/blob/master/in_action.mp4
