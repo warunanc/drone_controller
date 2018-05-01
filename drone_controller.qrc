@@ -3,5 +3,6 @@
         <file>drone_controller.qml</file>
         <file>images/circle.png</file>
         <file>images/drone.png</file>
+        <file>images/fly.png</file>
     </qresource>
 </RCC>

@@ -56,6 +56,141 @@ Rectangle {
         id: waypointmanager
     }
 
+    Rectangle {
+            height: 55
+            x: 10
+            y: 5
+            z: 2
+            enabled: true
+            width: 170;
+            color: "white"
+            opacity: 0.8
+            border.color: "black";
+            border.width: 2;
+
+            Column {
+                spacing: 5
+                y: 5
+                Button {
+                    id:simulate_flight_path
+                    y: 5
+                    x: 5
+                    text: "Start Flying.."
+                    enabled: true
+                    onClicked: buildDroneAnimation()
+                }
+
+                CheckBox {
+                    id: check_comback
+                    x: 5
+                    y: 5
+                    text: "Come back on the same path"
+                    checked: false
+                }
+            }
+        }
+
+    // Longitude Stuff
+    Label {
+        visible: false
+        id: long_label
+        height: 30
+        y: 70
+        x: 15
+        z: 3
+        text: "Longitude"
+        enabled: true
+        width: 170;
+        color: "black"
+        font.pixelSize: 16;
+        font.italic: false;
+        font.bold: true;
+        antialiasing: true
+    }
+
+    Label {
+        id: long_val
+        visible: false
+        height: 30
+        y: 90
+        x: 15
+        z: 3
+        text: "xxx.xxxxxx"
+        enabled: true
+        width: 170;
+        color: "blue"
+        font.pixelSize: 14;
+        font.italic: false;
+        font.bold: true;
+        antialiasing: true
+    }
+
+    Rectangle {
+        id: long_rec
+        visible: false
+        height: 50
+        x: 10
+        y: 65
+        z: 2
+        enabled: true
+        width: 170;
+        color: "white"
+        opacity: 0.8
+        border.color: "blue";
+        border.width: 2;
+    }
+    // Longitude Stuff
+    // Latitude Stuff
+    Label {
+        id: lat_label
+        visible: false
+        height: 30
+        y: 130
+        x: 15
+        z: 3
+        text: "Latitude"
+        enabled: true
+        width: 170;
+        color: "black"
+        font.pixelSize: 16;
+        font.italic: false;
+        font.bold: true;
+        antialiasing: true
+    }
+
+    Label {
+        id: lat_val
+        visible: false
+        height: 30
+        y: 150
+        x: 15
+        z: 3
+        text: "xxx.xxxxxx"
+        enabled: true
+        width: 170;
+        color: "green"
+        font.pixelSize: 14;
+        font.italic: false;
+        font.bold: true;
+        antialiasing: true
+    }
+
+    Rectangle {
+        id: lat_rec
+        visible: false
+        height: 50
+        x: 10
+        y: 125
+        z: 2
+        enabled: true
+        width: 170;
+        color: "white"
+        opacity: 0.8
+        border.color: "green";
+        border.width: 2;
+    }
+    //Latitude Stuff
+
     Plugin {
         id: myPlugin
         name: "osm"
@@ -88,7 +223,7 @@ Rectangle {
         zoomLevel: 15
     }
 
-    function add_waypoint(lat, lng, mousePoint){
+    function _addWaypoint(lat, lng, mousePoint){
         var item = Qt.createQmlObject('import QtQuick 2.7; import QtLocation 5.3; MapQuickItem{}', map, "dynamic");
         item.coordinate = QtPositioning.coordinate(lat, lng);
         var circle = Qt.createQmlObject('import QtQuick 2.7;Image{
@@ -99,14 +234,16 @@ Rectangle {
         item.anchorPoint.y = circle.height/2;
 
         var id = waypointmanager.addWayPoint(lat, lng, mousePoint);
-        var wayPointNumber = Qt.createQmlObject('import QtQuick.Controls 1.4; Label {
-                                                    text: "'+id+'";
-                                                    font.pixelSize: 25;
-                                                    font.italic: false;
-                                                    font.bold: true;
-                                                    color: "white";
-                                                    anchors.centerIn: parent
-                                                }', circle);
+        var wayPointNumber = Qt.createQmlObject
+                ('import QtQuick.Controls 1.4; Label {
+                                text: "'+id+'";
+                                font.pixelSize: 25;
+                                font.italic: false;
+                                font.bold: true;
+                                color: "white";
+                                anchors.centerIn: parent
+                            }', circle);
+
         map.addMapItem(item);
     }
 
@@ -116,47 +253,36 @@ Rectangle {
 
     MouseArea {
         anchors.fill: parent
-        //propagateComposedEvents: true
-
         onClicked: {
             console.log('latitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude),
                         'longitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude));
             console.log('x: ' + mouse.x + '| y: ' + mouse.y);
-            add_waypoint(map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude,
+            _addWaypoint(map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude,
                          map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude,
                          Qt.point(mouse.x,mouse.y))
         }
-    }
-
-    Button {
-        id:simulate_flight_path
-        y: 10
-        x: 20
-        text: "Simulate Flight Path"
-        onClicked: buildAnimation()
-    }
-
-    Button {
-        id: show_route
-        x: width+60
-        y: 10
-        text: "Show Route"
-        onClicked: drawRoute()
     }
 
     Image {
         id: drone
         visible: false;
         source: "images/drone.png"
+        onXChanged: {
+            console.log("lat: ", map.toCoordinate(Qt.point(this.x,this.y)).latitude);
+            console.log("long: ", map.toCoordinate(Qt.point(this.x,this.y)).longitude);
+            long_val.text = map.toCoordinate(Qt.point(this.x,this.y)).longitude;
+            lat_val.text = map.toCoordinate(Qt.point(this.x,this.y)).latitude;
+        }
     }
 
-    function buildAnimation() {
+    function buildDroneAnimation() {
         if (waypointmanager.count() > 1) {
             drone.visible = true;
+            _longLatBoxVisibility(true);
             var pathAnimationObject = Qt.createQmlObject('import QtQuick 2.7;' + 'Path {
                 startX: ' + waypointmanager.getWayPointById(1).x + '; startY: ' + waypointmanager.getWayPointById(1).y + ';' +
-                getPathElements() +
-            '}', mainRect);
+                                                         getPathElements() +
+                                                         '}', mainRect);
 
             pathAnim.path = pathAnimationObject;
             animation_test.restart();
@@ -168,23 +294,34 @@ Rectangle {
 
         for (var i=2; i < waypointmanager.count()+1; ++i) {
             pathElementString = pathElementString +
-                'PathLine {
+                    'PathLine {
                      x: ' + waypointmanager.getWayPointById(i).x + ';' +
-                    'y: ' + waypointmanager.getWayPointById(i).y + ';
+                     'y: ' + waypointmanager.getWayPointById(i).y + ';
                 }';
         }
         return pathElementString;
     }
 
+    function _longLatBoxVisibility(visibility) {
+        long_label.visible = visibility;
+        long_rec.visible = visibility;
+        long_val.visible = visibility;
+
+        lat_label.visible = visibility;
+        lat_rec.visible = visibility;
+        lat_val.visible = visibility;
+    }
+
     SequentialAnimation {
         id: animation_test
         running: false
-        loops: 2
+        loops: 1
+        onStopped: _longLatBoxVisibility(false)
 
         PathAnimation {
             id: pathAnim
             duration: 4000
-            easing.type: Easing.Linear
+            easing.type: check_comback.checked? Easing.SineCurve : Easing.Linear
             target: drone
             anchorPoint: Qt.point(drone.width/2, drone.height/2)
         }
