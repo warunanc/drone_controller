@@ -144,46 +144,22 @@ Rectangle {
         onClicked: drawRoute()
     }
 
-// Animation
     Image {
         id: drone
+        visible: false;
         source: "images/drone.png"
     }
 
     function buildAnimation() {
-//        var image = Qt.createQmlObject('import QtQuick 2.7; Image{
-//                                            id: drone_test;
-//                                            source: "images/drone.png";
-//                                            x: drone.width*2;
-//                                            y: 0}', mainRect);
-//        var path = [{ x: 182, y: 142 },
-//                    { x: 165, y: 273 },
-//                    { x: 509, y: 401 }];
+        drone.visible = true;
+        var path = [ {x: 182, y:142}, {x:165, y:273}, {x:509, y:401}];
 
-//        var animation_code = 'SequentialAnimation {
-//                                running: true;
-//                                loops: -1;}';
-//        var animationObject = Qt.createQmlObject('import QtQuick 2.7;' + animation_code, mainRect);
+        var pathAnimationObject = Qt.createQmlObject('import QtQuick 2.7;' + 'Path {
+            startX: ' + path[0].x + '; startY: ' + path[0].y + ';' +
+            getPathElements(path) +
+        '}', mainRect);
 
-//        var path_animation_code =  'PathAnimation {
-//                                            id: pathAnim;
-//                                            duration: 4000;
-//                                            easing.type: Easing.Linear;
-//                                            target: drone;
-//                                            anchorPoint: Qt.point(drone.width/2, drone.height/2);
-//                                            path: Path {
-//                                                startX: 0; startY: 0;
-//                                                PathLine {
-//                                                    x: 165;
-//                                                    y: 273;
-//                                                }
-//                                                PathLine {
-//                                                    x: 182;
-//                                                    y: 142;
-//                                                }
-//                                            }
-//                                        }';
-//        var pathAnimationObject = Qt.createQmlObject('import QtQuick 2.7;' + path_animation_code, animationObject);
+        pathAnim.path = pathAnimationObject;
         animation_test.start();
 
     }
@@ -193,9 +169,10 @@ Rectangle {
 
         for(var i=1; i < path.length; ++i){
             pathElementString = pathElementString +
-                    'PathLine {
-                        x: ' + path[i].x + ';' +
-                        'y: ' + path[i].y + ';}';
+                'PathLine {
+                     x: ' + path[i].x + ';' +
+                    'y: ' + path[i].y + ';
+                }';
         }
 
         return pathElementString;
@@ -210,25 +187,8 @@ Rectangle {
             id: pathAnim
             duration: 4000
             easing.type: Easing.Linear
-
             target: drone
             anchorPoint: Qt.point(drone.width/2, drone.height/2)
-            path: Path {
-                startX: 50; startY: 50
-
-                PathLine {
-                    x: 182
-                    y: 142
-                }
-                PathLine {
-                    x: 165
-                    y: 273
-                }
-                PathLine {
-                    x: 509
-                    y: 401
-                }
-            }
         }
     }
 }
