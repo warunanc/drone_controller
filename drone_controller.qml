@@ -39,7 +39,7 @@
 ****************************************************************************/
 
 //! [Imports]
-import QtQuick 2.0
+import QtQuick 2.7
 import QtPositioning 5.5
 import QtLocation 5.6
 import QtQuick.Controls 1.4
@@ -69,21 +69,34 @@ Rectangle {
             border.width: 2;
 
             Column {
-                spacing: 5
-                y: 5
-                Button {
-                    id:simulate_flight_path
-                    y: 5
-                    x: 5
-                    text: "Start Flying.."
-                    enabled: true
-                    onClicked: buildDroneAnimation()
+                spacing: 8
+                y: 2
+
+                Row {
+                    spacing: 2;
+                    leftPadding: 5
+                    Button {
+                        id:simulate_flight_path
+                        y: 5
+                        x: 5
+                        text: "Start Flying.."
+                        enabled: true
+                        onClicked: buildDroneAnimation()
+                    }
+
+                    Button {
+                        id:clear_stuff
+                        y: 5
+                        x: 5
+                        text: "Clear Waypoints"
+                        enabled: true
+                        onClicked: _clearAll()
+                    }
                 }
 
                 CheckBox {
                     id: check_comback
                     x: 5
-                    y: 5
                     text: "Come back on the same path"
                     checked: false
                 }
@@ -140,6 +153,7 @@ Rectangle {
         border.width: 2;
     }
     // Longitude Stuff
+
     // Latitude Stuff
     Label {
         id: lat_label
@@ -223,6 +237,12 @@ Rectangle {
         zoomLevel: 15
     }
 
+    function _clearAll() {
+        map.clearMapItems();
+        waypointmanager.clearAll();
+        drone.visible = false;
+    }
+
     function _addWaypoint(lat, lng, mousePoint){
         var item = Qt.createQmlObject('import QtQuick 2.7; import QtLocation 5.3; MapQuickItem{}', map, "dynamic");
         item.coordinate = QtPositioning.coordinate(lat, lng);
@@ -286,6 +306,9 @@ Rectangle {
 
             pathAnim.path = pathAnimationObject;
             animation_test.restart();
+        }
+        else {
+            drone.visible = false;
         }
     }
 

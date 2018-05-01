@@ -24,3 +24,9 @@ QPoint WayPointManager::getWayPointById(int index)
 {
     return _mapWayPoints.value(index)->getMousePoint();
 }
+
+void WayPointManager::clearAll()
+{
+    qDeleteAll(_mapWayPoints);
+    _mapWayPoints.clear();
+}

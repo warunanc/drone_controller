@@ -15,6 +15,7 @@ public:
     Q_INVOKABLE int addWayPoint(QString x, QString y, QPoint mousePoint);
     Q_INVOKABLE int count();
     Q_INVOKABLE QPoint getWayPointById(int index);
+    Q_INVOKABLE void clearAll();
 
 private:
     QMap<int, WayPoint*> _mapWayPoints;
