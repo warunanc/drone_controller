@@ -51,6 +51,7 @@ int main(int argc, char **argv)
     view.setSource(QUrl(QStringLiteral("qrc:///drone_controller.qml")));
     view.setWidth(640);
     view.setHeight(640);
-    view.show();
+    view.showMaximized();
+
     return app.exec();
 }

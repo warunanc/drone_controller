@@ -6,16 +6,21 @@ WayPointManager::WayPointManager(QObject *parent) :
 
 }
 
-int WayPointManager::add_waypoint(QString lat, QString lng, int mouseX, int mouseY)
+int WayPointManager::addWayPoint(QString lat, QString lng, QPoint mousePoint)
 {
     int wayPointId = _mapWayPoints.count() + 1;
 
-    WayPoint* wayPoint = new WayPoint(lat, lng, wayPointId, mouseX, mouseY);
+    WayPoint* wayPoint = new WayPoint(lat, lng, wayPointId, mousePoint);
     _mapWayPoints.insert(wayPointId, wayPoint);
     return wayPointId;
 }
 
-QList<QPoint *> WayPointManager::get_waypoints()
+int WayPointManager::count()
 {
+    return _mapWayPoints.size();
+}
 
+QPoint WayPointManager::getWayPointById(int index)
+{
+    return _mapWayPoints.value(index)->getMousePoint();
 }

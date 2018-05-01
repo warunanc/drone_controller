@@ -88,7 +88,7 @@ Rectangle {
         zoomLevel: 15
     }
 
-    function add_waypoint(lat, lng, mouseX, mouseY){
+    function add_waypoint(lat, lng, mousePoint){
         var item = Qt.createQmlObject('import QtQuick 2.7; import QtLocation 5.3; MapQuickItem{}', map, "dynamic");
         item.coordinate = QtPositioning.coordinate(lat, lng);
         var circle = Qt.createQmlObject('import QtQuick 2.7;Image{
@@ -98,7 +98,7 @@ Rectangle {
         item.anchorPoint.x = circle.width/2;
         item.anchorPoint.y = circle.height/2;
 
-        var id = waypointmanager.add_waypoint(lat, lng, mouseX, mouseY);
+        var id = waypointmanager.addWayPoint(lat, lng, mousePoint);
         var wayPointNumber = Qt.createQmlObject('import QtQuick.Controls 1.4; Label {
                                                     text: "'+id+'";
                                                     font.pixelSize: 25;
@@ -116,7 +116,7 @@ Rectangle {
 
     MouseArea {
         anchors.fill: parent
-        propagateComposedEvents: true
+        //propagateComposedEvents: true
 
         onClicked: {
             console.log('latitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude),
@@ -124,7 +124,7 @@ Rectangle {
             console.log('x: ' + mouse.x + '| y: ' + mouse.y);
             add_waypoint(map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude,
                          map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude,
-                         mouse.x, mouse.y)
+                         Qt.point(mouse.x,mouse.y))
         }
     }
 
@@ -151,37 +151,35 @@ Rectangle {
     }
 
     function buildAnimation() {
-        drone.visible = true;
-        var path = [ {x: 182, y:142}, {x:165, y:273}, {x:509, y:401}];
+        if (waypointmanager.count() > 1) {
+            drone.visible = true;
+            var pathAnimationObject = Qt.createQmlObject('import QtQuick 2.7;' + 'Path {
+                startX: ' + waypointmanager.getWayPointById(1).x + '; startY: ' + waypointmanager.getWayPointById(1).y + ';' +
+                getPathElements() +
+            '}', mainRect);
 
-        var pathAnimationObject = Qt.createQmlObject('import QtQuick 2.7;' + 'Path {
-            startX: ' + path[0].x + '; startY: ' + path[0].y + ';' +
-            getPathElements(path) +
-        '}', mainRect);
-
-        pathAnim.path = pathAnimationObject;
-        animation_test.start();
-
+            pathAnim.path = pathAnimationObject;
+            animation_test.restart();
+        }
     }
 
-    function getPathElements(path) {
+    function getPathElements() {
         var pathElementString = "";
 
-        for(var i=1; i < path.length; ++i){
+        for (var i=2; i < waypointmanager.count()+1; ++i) {
             pathElementString = pathElementString +
                 'PathLine {
-                     x: ' + path[i].x + ';' +
-                    'y: ' + path[i].y + ';
+                     x: ' + waypointmanager.getWayPointById(i).x + ';' +
+                    'y: ' + waypointmanager.getWayPointById(i).y + ';
                 }';
         }
-
         return pathElementString;
     }
 
     SequentialAnimation {
         id: animation_test
         running: false
-        loops: 1
+        loops: 2
 
         PathAnimation {
             id: pathAnim
