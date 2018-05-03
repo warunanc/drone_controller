@@ -52,6 +52,7 @@ Rectangle {
     id: mainRect
     anchors.fill: parent
 
+    // C++ Object
     WayPointManager {
         id: waypointmanager
     }
@@ -103,7 +104,7 @@ Rectangle {
             }
         }
 
-    // Longitude Stuff
+    // Longitude Box
     Label {
         visible: false
         id: long_label
@@ -120,7 +121,6 @@ Rectangle {
         font.bold: true;
         antialiasing: true
     }
-
     Label {
         id: long_val
         visible: false
@@ -137,7 +137,6 @@ Rectangle {
         font.bold: true;
         antialiasing: true
     }
-
     Rectangle {
         id: long_rec
         visible: false
@@ -152,9 +151,8 @@ Rectangle {
         border.color: "blue";
         border.width: 2;
     }
-    // Longitude Stuff
 
-    // Latitude Stuff
+    // Latitude Box
     Label {
         id: lat_label
         visible: false
@@ -171,7 +169,6 @@ Rectangle {
         font.bold: true;
         antialiasing: true
     }
-
     Label {
         id: lat_val
         visible: false
@@ -188,7 +185,6 @@ Rectangle {
         font.bold: true;
         antialiasing: true
     }
-
     Rectangle {
         id: lat_rec
         visible: false
@@ -203,7 +199,6 @@ Rectangle {
         border.color: "green";
         border.width: 2;
     }
-    //Latitude Stuff
 
     Plugin {
         id: myPlugin
@@ -212,29 +207,51 @@ Rectangle {
 
     property variant locationChangiAirport: QtPositioning.coordinate( 1.359395, 103.989553)
 
-    PositionSource {
-        id: positionSource
-        property variant lastSearchPosition: locationChangiAirport
-        active: true
-        updateInterval: 120000 // 2 mins
-        onPositionChanged:  {
-            var currentPosition = positionSource.position.coordinate
-            map.center = currentPosition
-            var distance = currentPosition.distanceTo(lastSearchPosition)
-            if (distance > 500) {
-                lastSearchPosition = currentPosition
-                searchModel.searchArea = QtPositioning.circle(currentPosition)
-                searchModel.update()
-            }
-        }
-    }
-
     Map {
         id: map
         anchors.fill: parent
         plugin: myPlugin;
         center: locationChangiAirport
         zoomLevel: 15
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                console.log('latitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude),
+                            'longitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude));
+                console.log('x: ' + mouse.x + '| y: ' + mouse.y);
+                _addWaypoint(map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude,
+                             map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude,
+                             Qt.point(mouse.x,mouse.y))
+            }
+        }
+    }
+
+    Image {
+        id: drone
+        visible: false;
+        source: "images/drone.png"
+        onXChanged: {
+            console.log("lat: ", map.toCoordinate(Qt.point(this.x,this.y)).latitude);
+            console.log("long: ", map.toCoordinate(Qt.point(this.x,this.y)).longitude);
+            long_val.text = map.toCoordinate(Qt.point(this.x,this.y)).longitude;
+            lat_val.text = map.toCoordinate(Qt.point(this.x,this.y)).latitude;
+        }
+    }
+
+    SequentialAnimation {
+        id: animation_test
+        running: false
+        loops: 1
+        onStopped: _longLatBoxVisibility(false)
+
+        PathAnimation {
+            id: pathAnim
+            duration: 4000
+            easing.type: check_comback.checked? Easing.SineCurve : Easing.Linear
+            target: drone
+            anchorPoint: Qt.point(drone.width/2, drone.height/2)
+        }
     }
 
     function _clearAll() {
@@ -256,43 +273,15 @@ Rectangle {
         var id = waypointmanager.addWayPoint(lat, lng, mousePoint);
         var wayPointNumber = Qt.createQmlObject
                 ('import QtQuick.Controls 1.4; Label {
-                                text: "'+id+'";
-                                font.pixelSize: 25;
-                                font.italic: false;
-                                font.bold: true;
-                                color: "white";
-                                anchors.centerIn: parent
-                            }', circle);
+                        text: "'+id+'";
+                        font.pixelSize: 25;
+                        font.italic: false;
+                        font.bold: true;
+                        color: "white";
+                        anchors.centerIn: parent
+                    }', circle);
 
         map.addMapItem(item);
-    }
-
-    function drawRoute() {
-
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            console.log('latitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude),
-                        'longitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude));
-            console.log('x: ' + mouse.x + '| y: ' + mouse.y);
-            _addWaypoint(map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude,
-                         map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude,
-                         Qt.point(mouse.x,mouse.y))
-        }
-    }
-
-    Image {
-        id: drone
-        visible: false;
-        source: "images/drone.png"
-        onXChanged: {
-            console.log("lat: ", map.toCoordinate(Qt.point(this.x,this.y)).latitude);
-            console.log("long: ", map.toCoordinate(Qt.point(this.x,this.y)).longitude);
-            long_val.text = map.toCoordinate(Qt.point(this.x,this.y)).longitude;
-            lat_val.text = map.toCoordinate(Qt.point(this.x,this.y)).latitude;
-        }
     }
 
     function buildDroneAnimation() {
@@ -301,8 +290,8 @@ Rectangle {
             _longLatBoxVisibility(true);
             var pathAnimationObject = Qt.createQmlObject('import QtQuick 2.7;' + 'Path {
                 startX: ' + waypointmanager.getWayPointById(1).x + '; startY: ' + waypointmanager.getWayPointById(1).y + ';' +
-                                                         getPathElements() +
-                                                         '}', mainRect);
+                getPathElements() +
+             '}', mainRect);
 
             pathAnim.path = pathAnimationObject;
             animation_test.restart();
@@ -333,20 +322,5 @@ Rectangle {
         lat_label.visible = visibility;
         lat_rec.visible = visibility;
         lat_val.visible = visibility;
-    }
-
-    SequentialAnimation {
-        id: animation_test
-        running: false
-        loops: 1
-        onStopped: _longLatBoxVisibility(false)
-
-        PathAnimation {
-            id: pathAnim
-            duration: 4000
-            easing.type: check_comback.checked? Easing.SineCurve : Easing.Linear
-            target: drone
-            anchorPoint: Qt.point(drone.width/2, drone.height/2)
-        }
     }
 }

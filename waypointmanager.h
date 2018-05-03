@@ -12,6 +12,7 @@ class WayPointManager : public QObject
     Q_OBJECT
 public:
     explicit WayPointManager(QObject *parent = nullptr);
+    virtual ~WayPointManager();
     Q_INVOKABLE int addWayPoint(QString x, QString y, QPoint mousePoint);
     Q_INVOKABLE int count();
     Q_INVOKABLE QPoint getWayPointById(int index);

@@ -6,6 +6,12 @@ WayPointManager::WayPointManager(QObject *parent) :
 
 }
 
+WayPointManager::~WayPointManager()
+{
+    qDeleteAll(_mapWayPoints);
+    _mapWayPoints.clear();
+}
+
 int WayPointManager::addWayPoint(QString lat, QString lng, QPoint mousePoint)
 {
     int wayPointId = _mapWayPoints.count() + 1;
