@@ -104,6 +104,36 @@ Rectangle {
             }
         }
 
+    Rectangle {
+        id: pan_disabled_rec
+        visible: false
+        height: 30
+        z:5
+        x: (parent.width/2)-220
+        y: 10
+        enabled: true
+        width: 440;
+        color: "white"
+        opacity: 0.8
+        border.color: "red";
+        border.width: 2;
+
+        Label {
+            id: lbl_pan_error
+            visible: true
+            height: 26
+            y: 7
+            x: 5
+            text: "Gestures are disabled during mission planning. App is still not mature enough :)"
+            width: 170;
+            color: "black"
+            font.pixelSize: 12;
+            font.italic: false;
+            font.bold: false;
+            antialiasing: true
+        }
+    }
+
     // Longitude Box
     Label {
         visible: false
@@ -215,11 +245,9 @@ Rectangle {
         zoomLevel: 15
 
         MouseArea {
+            id: map_mouse_area
             anchors.fill: parent
             onClicked: {
-                console.log('latitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude),
-                            'longitude = '+ (map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude));
-                console.log('x: ' + mouse.x + '| y: ' + mouse.y);
                 _addWaypoint(map.toCoordinate(Qt.point(mouse.x,mouse.y)).latitude,
                              map.toCoordinate(Qt.point(mouse.x,mouse.y)).longitude,
                              Qt.point(mouse.x,mouse.y))
@@ -232,8 +260,6 @@ Rectangle {
         visible: false;
         source: "images/drone.png"
         onXChanged: {
-            console.log("lat: ", map.toCoordinate(Qt.point(this.x,this.y)).latitude);
-            console.log("long: ", map.toCoordinate(Qt.point(this.x,this.y)).longitude);
             long_val.text = map.toCoordinate(Qt.point(this.x,this.y)).longitude;
             lat_val.text = map.toCoordinate(Qt.point(this.x,this.y)).latitude;
         }
@@ -243,7 +269,8 @@ Rectangle {
         id: animation_test
         running: false
         loops: 1
-        onStopped: _longLatBoxVisibility(false)
+        onStopped: {_longLatBoxVisibility(false); map_mouse_area.enabled = true}
+        onStarted: {map_mouse_area.enabled = false}
 
         PathAnimation {
             id: pathAnim
@@ -255,12 +282,16 @@ Rectangle {
     }
 
     function _clearAll() {
+        pan_disabled_rec.visible = false;
+        map.gesture.enabled = true;
         map.clearMapItems();
         waypointmanager.clearAll();
         drone.visible = false;
     }
 
     function _addWaypoint(lat, lng, mousePoint){
+        pan_disabled_rec.visible = true;
+        map.gesture.enabled = false;
         var item = Qt.createQmlObject('import QtQuick 2.7; import QtLocation 5.3; MapQuickItem{}', map, "dynamic");
         item.coordinate = QtPositioning.coordinate(lat, lng);
         var circle = Qt.createQmlObject('import QtQuick 2.7;Image{
@@ -282,6 +313,10 @@ Rectangle {
                     }', circle);
 
         map.addMapItem(item);
+    }
+
+    function _test(x) {
+        console('x: ' + x);
     }
 
     function buildDroneAnimation() {
