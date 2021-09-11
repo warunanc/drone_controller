@@ -10,6 +10,7 @@ WayPointManager::~WayPointManager()
 {
     qDeleteAll(_mapWayPoints);
     _mapWayPoints.clear();
+    qPrint("Test");
 }
 
 int WayPointManager::addWayPoint(QString lat, QString lng, QPoint mousePoint)
